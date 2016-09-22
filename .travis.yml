@@ -7,7 +7,7 @@ go:
   - tip
 
 install:
-  - github.com/peterh/liner
+  - go get -u github.com/peterh/liner
 
 script:
   - go vet ./...
