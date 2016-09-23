@@ -17,11 +17,7 @@ type Completer func(arg string) []string
 func CompleteFileOrDir(fileOrDir string) []string {
 	// if the user supplied no input, pre-populate with the cwd
 	if fileOrDir == "" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return []string{""}
-		}
-		fileOrDir = cwd
+		fileOrDir = "./"
 	}
 
 	base := path.Clean(fileOrDir)

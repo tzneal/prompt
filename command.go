@@ -143,9 +143,6 @@ func (c *command) complete(line []segment, completers map[string]Completer) (com
 		if len(words) == 0 {
 			return completeNone, nil
 		}
-		if len(words) == 1 {
-			return completeExact, words
-		}
 		return mt, words
 	}
 
