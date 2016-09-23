@@ -86,19 +86,26 @@ func (c *command) complete(line []segment, completers map[string]Completer) (com
 		return completeExact, []string{c.desc.words[0].value}
 	}
 
+	// user input is longer than the command allows, and it's not
+	// a wildcard command
 	if len(line) > len(c.desc.words) && !c.isWildcard() {
 		return completeNone, nil
 	} else if len(line) >= len(c.desc.words) && c.isWildcard() {
 		last := c.desc.words[len(c.desc.words)-1]
-
 		// do we have a completer?
 		if completer, ok := completers[last.ctype]; ok {
 			lastInput := line[len(line)-1]
-			return completePartial, completer(lastInput.value)
+			c := completer(lastInput.value)
+			// only one completion, and it's the text we matched against
+			if len(c) == 1 && c[0] == lastInput.value {
+				return completeNone, nil
+			}
+			return completePartial, c
 		}
 		return completeNone, nil
 	}
 
+	// find the last command description segment that matches
 	matchSegIdx := 0
 	mt := completeNone
 	for i, l := range line {
@@ -108,33 +115,38 @@ func (c *command) complete(line []segment, completers map[string]Completer) (com
 		matchSegIdx = i
 	}
 
+	// exact match for all segments we checked
 	if mt == completeExact {
-		// already fully match this command
+		// already fully matches this command and there are no segments left
 		if matchSegIdx == len(c.desc.words)-1 {
 			return completeNone, nil
 		}
+		// offer the next segment as a completion
 		matchSegIdx++
 	}
 
 	matchSeg := c.desc.words[matchSegIdx]
+	// are we matching a $n, or $* segment?
 	if matchSeg.typ == placeholderType {
-		if matchSeg.ctype != "" {
-			if completer, ok := completers[matchSeg.ctype]; ok {
-				var words []string
-				if matchSegIdx >= len(line) {
-					words = completer("")
-				} else {
-					words = completer(line[matchSegIdx].value)
-				}
-				if len(words) == 0 {
-					return completeNone, nil
-				}
-
-				return mt, words
-			}
+		completer, ok := completers[matchSeg.ctype]
+		// unknown or no completer for this placeholder
+		if !ok {
+			return completeNone, nil
 		}
-		// no or missing completer for this placeholder
-		return completeNone, nil
+
+		var words []string
+		if matchSegIdx >= len(line) {
+			words = completer("")
+		} else {
+			words = completer(line[matchSegIdx].value)
+		}
+		if len(words) == 0 {
+			return completeNone, nil
+		}
+		if len(words) == 1 {
+			return completeExact, words
+		}
+		return mt, words
 	}
 
 	// not a placeholder, so just return the single next segment
