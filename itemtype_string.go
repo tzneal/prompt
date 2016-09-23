@@ -4,9 +4,9 @@ package prompt
 
 import "fmt"
 
-const _itemType_name = "itemChanCloseitemErroritemWorditemSemiitemEqualsitemStringitemLineContitemFilenameitemPlaceholderitemCompletionTypeitemPipeitemRAngleitemStartCommanditemEOF"
+const _itemType_name = "itemChanCloseitemErroritemWorditemSemiitemEqualsitemQuotedStringitemLineContitemFilenameitemPlaceholderitemCompletionTypeitemPipeitemRAngleitemEOF"
 
-var _itemType_index = [...]uint8{0, 13, 22, 30, 38, 48, 58, 70, 82, 97, 115, 123, 133, 149, 156}
+var _itemType_index = [...]uint8{0, 13, 22, 30, 38, 48, 64, 76, 88, 103, 121, 129, 139, 146}
 
 func (i itemType) String() string {
 	if i >= itemType(len(_itemType_index)-1) {
