@@ -14,21 +14,21 @@ type Completer func(arg string) []string
 
 // CompleteFileOrDir is a pre-defined completer that is used to complete
 // a file or directory name.
-func CompleteFileOrDir(outputFile string) []string {
+func CompleteFileOrDir(fileOrDir string) []string {
 	// if the user supplied no input, pre-populate with the cwd
-	if outputFile == "" {
+	if fileOrDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return []string{""}
 		}
-		outputFile = cwd
+		fileOrDir = cwd
 	}
 
-	// complete filename
-	base := path.Clean(outputFile)
+	base := path.Clean(fileOrDir)
 	dir, file := path.Split(base)
-	if fs, err := os.Stat(outputFile); err == nil && fs.IsDir() {
-		dir = outputFile
+	// path specifies a directory, so complete inside of it
+	if fs, err := os.Stat(fileOrDir); err == nil && fs.IsDir() {
+		dir = fileOrDir
 		file = ""
 	}
 
