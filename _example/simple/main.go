@@ -24,6 +24,11 @@ func main() {
 	p.RegisterFilter("grep", prompt.Grep)
 
 	cs := p.NewCommandSet("default")
+	cs.RegisterCommand("exit", func(w io.Writer, args []string) {
+		fmt.Fprintf(w, "exiting...\n")
+		p.Close()
+		os.Exit(0)
+	})
 	cs.RegisterCommand("names", prompt.PushCommandSet(p, "names-set"))
 	cs.RegisterCommand("list-files", prompt.PushCommandSet(p, "list-files-set"))
 	names := p.NewCommandSet("names-set")

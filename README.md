@@ -3,11 +3,13 @@ Prompt
 
 [![Build Status](https://travis-ci.org/tzneal/prompt.svg?branch=master)](https://travis-ci.org/tzneal/prompt)
 [![GoDoc](https://godoc.org/github.com/tzneal/prompt?status.svg)](https://godoc.org/github.com/tzneal/prompt)
+[![Coverage Status](https://coveralls.io/repos/github/tzneal/prompt/badge.svg?branch=master)](https://coveralls.io/github/tzneal/prompt?branch=master)
 
 Prompt is a library for adding shell like interfaces to command line
 applications.  It's intended to be similar to the interface used by some
 networking equipment.
 
+[![asciicast](https://asciinema.org/a/bz1e2gczb14gqhdgci51ku30x.png)](https://asciinema.org/a/bz1e2gczb14gqhdgci51ku30x)
 
 Features
 --------
