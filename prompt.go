@@ -15,6 +15,7 @@ import (
 // Prompt is the user prompt.
 type Prompt struct {
 	LineState   *liner.State           // the liner used for input, visibile to allow direct manipulation/changes
+	Prompter    func() string          // Prompt is the function called to return the prompt
 	curPrompt   string                 // the current prompt passed to liner
 	commandSets map[string]*CommandSet // registered command sets
 	completers  map[string]Completer   // context-sensitive placeholder completion
@@ -28,7 +29,9 @@ func NewPrompt() *Prompt {
 	line.SetCtrlCAborts(true)
 	line.SetTabCompletionStyle(liner.TabPrints)
 	p := &Prompt{
-		curPrompt:   "> ",
+		Prompter: func() string {
+			return ">"
+		},
 		LineState:   line,
 		completers:  map[string]Completer{},
 		filters:     map[string]Filter{},
@@ -129,7 +132,7 @@ func (p *Prompt) runCommand(match *command, input input) {
 
 // Prompt prompts the user and returns input.
 func (p *Prompt) Prompt() bool {
-	if userInput, err := p.LineState.Prompt(p.curPrompt); err == nil {
+	if userInput, err := p.LineState.Prompt(p.Prompter()); err == nil {
 		// user just hit enter with no input
 		if len(userInput) == 0 {
 			return true
