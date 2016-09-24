@@ -14,7 +14,7 @@ import (
 
 // Prompt is the user prompt.
 type Prompt struct {
-	LineState   *liner.State           // the liner used for input
+	LineState   *liner.State           // the liner used for input, visibile to allow direct manipulation/changes
 	curPrompt   string                 // the current prompt passed to liner
 	commandSets map[string]*CommandSet // registered command sets
 	completers  map[string]Completer   // context-sensitive placeholder completion
@@ -187,6 +187,9 @@ func (p *Prompt) PushCommandSet(name string) error {
 
 // CurrentCommandSet returns the current command set in use.
 func (p *Prompt) CurrentCommandSet() *CommandSet {
+	if len(p.cmdSetStack) == 0 {
+		return nil
+	}
 	return p.cmdSetStack[len(p.cmdSetStack)-1]
 }
 
@@ -204,6 +207,9 @@ func (p *Prompt) RegisterFilter(name string, fn Filter) error {
 }
 
 func (p *Prompt) execMatch(inp input) *command {
+	if p.CurrentCommandSet() == nil {
+		return nil
+	}
 	var cmdMatch *command
 	var cmdMatchScore matchType
 	for _, cmd := range p.CurrentCommandSet().commands {

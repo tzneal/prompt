@@ -1,36 +1,12 @@
 package prompt
 
-import "testing"
-
-func TestArgExtraction(t *testing.T) {
-	tests := []struct {
-		cmd   string
-		input string
-		args  []string
-	}{
-		{"go $*", "go foo", []string{"foo"}},
-		{"go $*", "go foo bar baz", []string{"foo", "bar", "baz"}},
-		{"go $1", "go foo", []string{"foo"}},
-		{"go $1 $2", "go foo bar", []string{"foo", "bar"}},
-		{"go $2 $1", "go foo bar", []string{"bar", "foo"}},
-		{"go $3 $1 $2", "go a b c", []string{"b", "c", "a"}},
-	}
-
-	for _, tc := range tests {
-		inp, _ := parse(tc.input)
-		cmd, _ := parse(tc.cmd)
-
-		res := extractArgs(inp[0].words, cmd[0].words)
-		if len(res) != len(tc.args) {
-			t.Errorf("expected %s = %s", res, tc.args)
-		}
-		for i := range res {
-			if res[i] != tc.args[i] {
-				t.Errorf("expected arg %d, %s = %s", i, res[i], tc.args[i])
-			}
-		}
-	}
-}
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"testing"
+)
 
 func TestCommandSetStack(t *testing.T) {
 	p := NewPrompt()
@@ -73,5 +49,127 @@ func TestCommandSetStack(t *testing.T) {
 	// pop A, should fail
 	if err := p.PopCommandSet(); err == nil {
 		t.Error("pop should fail")
+	}
+}
+
+func buildTestPrompt(t *testing.T) (prompt *Prompt, cleanup func()) {
+	oldStdin := os.Stdin
+	oldStdout := os.Stdout
+
+	repStdin, err := ioutil.TempFile("", "prompt")
+	if err != nil {
+		t.Fatalf("unable to create temp file: %s", err)
+	}
+	os.Stdin = repStdin
+	repStdout, err := ioutil.TempFile("", "prompt")
+	if err != nil {
+		t.Fatalf("unable to create temp file: %s", err)
+	}
+	os.Stdout = repStdout
+
+	p := NewPrompt()
+	return p, func() {
+		os.Stdin = oldStdin
+		os.Stdout = oldStdout
+		p.Close()
+	}
+}
+
+func TestPromptNoCommandsRegistered(t *testing.T) {
+	p, cleanup := buildTestPrompt(t)
+	defer cleanup()
+
+	fmt.Fprintf(os.Stdin, "test\n")
+	_, err := os.Stdin.Seek(0, 0)
+
+	if err != nil {
+		t.Fatalf("unable to seek file: %s", err)
+	}
+	if p.Prompt() != true {
+		t.Errorf("expected Prompt() = true with input")
+	}
+	if p.Prompt() != false {
+		t.Errorf("expected Prompt() = false with eof")
+	}
+}
+
+func TestPromptSingleCommandNoArgs(t *testing.T) {
+	p, cleanup := buildTestPrompt(t)
+	defer cleanup()
+
+	cmdExecuted := false
+	cs := p.NewCommandSet("foo")
+	cs.RegisterCommand("test", func(io.Writer, []string) {
+		cmdExecuted = true
+	})
+
+	fmt.Fprintf(os.Stdin, "test\n")
+	_, err := os.Stdin.Seek(0, 0)
+
+	if err != nil {
+		t.Fatalf("unable to seek file: %s", err)
+	}
+	if p.Prompt() != true {
+		t.Errorf("expected Prompt() = true with input")
+	}
+	if p.Prompt() != false {
+		t.Errorf("expected Prompt() = false with eof")
+	}
+	if cmdExecuted == false {
+		t.Error("expected command to run")
+	}
+}
+
+func TestPromptSingleCommandSingleArg(t *testing.T) {
+	p, cleanup := buildTestPrompt(t)
+	defer cleanup()
+
+	cmdArg := ""
+	cs := p.NewCommandSet("foo")
+	cs.RegisterCommand("test $1", func(w io.Writer, args []string) {
+		cmdArg = args[0]
+	})
+
+	fmt.Fprintf(os.Stdin, "test bar\n") // should run
+	fmt.Fprintf(os.Stdin, "test\n")     // won't run
+	_, err := os.Stdin.Seek(0, 0)
+
+	if err != nil {
+		t.Fatalf("unable to seek file: %s", err)
+	}
+	for p.Prompt() {
+
+	}
+	if cmdArg != "bar" {
+		t.Error("expected command to run")
+	}
+}
+
+func TestPromptSingleCommandWildcard(t *testing.T) {
+	p, cleanup := buildTestPrompt(t)
+	defer cleanup()
+
+	cmdArgs := []string{}
+	cs := p.NewCommandSet("foo")
+	cs.RegisterCommand("test $*", func(w io.Writer, args []string) {
+		cmdArgs = args
+	})
+
+	fmt.Fprintf(os.Stdin, "test bar baz\n")
+	fmt.Fprintf(os.Stdin, "test\n")
+	_, err := os.Stdin.Seek(0, 0)
+
+	if err != nil {
+		t.Fatalf("unable to seek file: %s", err)
+	}
+
+	for p.Prompt() {
+	}
+
+	if len(cmdArgs) != 2 {
+		t.Fatalf("expected command to run")
+	}
+	if cmdArgs[0] != "bar" || cmdArgs[1] != "baz" {
+		t.Errorf("expected args = bar, baz, got %v", cmdArgs)
 	}
 }
