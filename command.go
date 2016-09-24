@@ -178,7 +178,7 @@ func completionMatchSegment(input, cmd segment) completionType {
 
 func parseCommand(desc string, fn Command) (*command, error) {
 	cmd := &command{}
-	inp, err := parse(desc)
+	inp, err := parseCmdDescription(desc)
 	if err != nil {
 		return nil, err
 	}

@@ -138,7 +138,7 @@ func (p *Prompt) Prompt() bool {
 			return true
 		}
 
-		parsed, err := parse(userInput)
+		parsed, err := parseUserInput(userInput)
 		if err != nil {
 			fmt.Printf("parse error: %s\n", err)
 			return true
@@ -225,7 +225,7 @@ func (p *Prompt) execMatch(inp input) *command {
 }
 
 func (p *Prompt) inputCompleter(line string) []string {
-	l, err := parse(line)
+	l, err := parseUserInput(line)
 	if err != nil {
 		// TODO: notify user of an error
 		return nil

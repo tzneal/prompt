@@ -43,7 +43,7 @@ func TestCommandExecMatchWildcard(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		inp, _ := parse(tc.input)
+		inp, _ := parseUserInput(tc.input)
 		mt := cmd.execMatch(inp[0])
 		if mt != tc.expMatch {
 			t.Errorf("expected match=%v, got %v for %v", tc.expMatch, mt, tc.input)
@@ -71,7 +71,7 @@ func TestCommandExecMatchSubst(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		inp, _ := parse(tc.input)
+		inp, _ := parseUserInput(tc.input)
 		mt := cmd.execMatch(inp[0])
 		if mt != tc.expMatch {
 			t.Errorf("expected match=%v, got %v for %v", tc.expMatch, mt, tc.input)
@@ -106,7 +106,7 @@ func TestCommandCompletePlaceholder(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		inp, _ := parse(tc.input)
+		inp, _ := parseUserInput(tc.input)
 		cType, completions := cmd.complete(inp[0].words, completers)
 		if cType != tc.cType {
 			t.Errorf("expected ct=%s, got %s for %v", tc.cType, cType, tc.input)
@@ -150,7 +150,7 @@ func TestCommandCompletePlaceWildcard(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		inp, _ := parse(tc.input)
+		inp, _ := parseUserInput(tc.input)
 		// handle empty string
 		if inp == nil || len(inp) == 0 {
 			inp = []input{{}}

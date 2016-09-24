@@ -21,7 +21,7 @@ func TestParse(t *testing.T) {
 			"[{<wordType foo> <placeholderType * complete:host> filter: grep[-i 192] grep[-v 100]} {<wordType ls> <wordType a.txt>}]", ""}}
 
 	for _, tc := range testCases {
-		inp, err := parse(tc.input)
+		inp, err := parseCmdDescription(tc.input)
 		outp := fmt.Sprintf("%s", inp)
 		if err != nil {
 			if err.Error() != tc.err {
@@ -57,8 +57,8 @@ func TestArgExtraction(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		inp, _ := parse(tc.input)
-		cmd, _ := parse(tc.cmd)
+		inp, _ := parseUserInput(tc.input)
+		cmd, _ := parseCmdDescription(tc.cmd)
 
 		res := extractArgs(inp[0].words, cmd[0].words)
 		if len(res) != len(tc.args) {

@@ -257,8 +257,13 @@ func parseMidCmd(p *parser) parseStateFn {
 	}
 }
 
-func parse(userInput string) ([]input, error) {
-	p := &parser{lexedItems: lex(userInput)}
+func parseUserInput(userInput string) ([]input, error) {
+	p := &parser{lexedItems: lex(userInput, userInputMode)}
+	return p.run()
+}
+
+func parseCmdDescription(userInput string) ([]input, error) {
+	p := &parser{lexedItems: lex(userInput, cmdDescMode)}
 	return p.run()
 }
 

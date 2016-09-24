@@ -16,7 +16,6 @@ const (
 	itemError
 	itemWord
 	itemSemi
-	itemEquals
 	itemQuotedString
 	itemLineCont
 	itemFilename
@@ -38,6 +37,7 @@ func (i item) String() string {
 
 type lexer struct {
 	input string    // the string being scanned.
+	mode  lexMode   // the lex mode (command description or user input)
 	start int       // start position of this item.
 	pos   int       // current position in the input.
 	width int       // width of last rune read from input.
@@ -50,9 +50,17 @@ func startState(*lexer) lexStateFn {
 	return startState
 }
 
-func lex(input string) chan item {
+type lexMode byte
+
+const (
+	cmdDescMode lexMode = iota
+	userInputMode
+)
+
+func lex(input string, mode lexMode) chan item {
 	l := &lexer{
 		input: input,
+		mode:  mode,
 		items: make(chan item),
 	}
 	go l.run() // Concurrently run state machine.
@@ -254,12 +262,10 @@ func lexCommand(l *lexer) lexStateFn {
 			l.emit(itemSemi)
 		case r == '|':
 			return lexFilter
-		case r == '=':
-			l.emit(itemEquals)
 		case r == '>':
 			l.emit(itemRAngle)
 			return lexFilename
-		case r == '$':
+		case l.mode == cmdDescMode && r == '$':
 			return lexPlaceholder
 		case r == '\\' && isEndOfLine(l.peek()):
 			for isEndOfLine(l.peek()) {
