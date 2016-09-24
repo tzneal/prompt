@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"testing"
 )
 
 func TestCommandSetStack(t *testing.T) {
 	p := NewPrompt()
+	defer p.Close()
 	csA := p.NewCommandSet("a")
 	csB := p.NewCommandSet("b")
 	csC := p.NewCommandSet("c")
@@ -49,6 +51,36 @@ func TestCommandSetStack(t *testing.T) {
 	// pop A, should fail
 	if err := p.PopCommandSet(); err == nil {
 		t.Error("pop should fail")
+	}
+}
+
+func TestPromptCompleter(t *testing.T) {
+	p := NewPrompt()
+	defer p.Close()
+
+	cs := p.NewCommandSet("foo")
+	cs.RegisterCommand("test", func(io.Writer, []string) {})
+	cs.RegisterCommand("testing", func(io.Writer, []string) {})
+	cs.RegisterCommand("traffic", func(io.Writer, []string) {})
+
+	tests := []struct {
+		input string
+		exp   []string
+	}{{"t", []string{"test", "testing", "traffic"}},
+		{"te", []string{"test", "testing"}},
+		{"tes", []string{"test", "testing"}},
+		{"test", []string{"testing"}},
+		{"testb", nil}}
+	for _, tc := range tests {
+		got := p.inputCompleter(tc.input)
+		if len(got) != len(tc.exp) {
+			t.Fatalf("expected %v, got %v", tc.exp, got)
+		}
+		for i := range tc.exp {
+			if tc.exp[i] != got[i] {
+				t.Fatalf("expected %s, got %s", tc.exp[i], got[i])
+			}
+		}
 	}
 }
 
@@ -172,4 +204,41 @@ func TestPromptSingleCommandWildcard(t *testing.T) {
 	if cmdArgs[0] != "bar" || cmdArgs[1] != "baz" {
 		t.Errorf("expected args = bar, baz, got %v", cmdArgs)
 	}
+}
+
+func randCmd(r rand.Source, maxLen int64) []byte {
+	b := make([]byte, r.Int63()%maxLen+1)
+	for i := range b {
+		c := byte(r.Int63() % 255)
+		// prevent file output
+		if c == '>' {
+			c = ' '
+		}
+		b[i] = c
+	}
+	b[len(b)-1] = '\n'
+	return b
+}
+
+func TestPromptFuzz(t *testing.T) {
+	p, cleanup := buildTestPrompt(t)
+	defer cleanup()
+
+	cs := p.NewCommandSet("foo")
+	cs.RegisterCommand("test", func(w io.Writer, args []string) {
+	})
+
+	r := rand.NewSource(42)
+	for i := 0; i < 25000; i++ {
+		os.Stdin.Write(randCmd(r, 40))
+	}
+	_, err := os.Stdin.Seek(0, 0)
+
+	if err != nil {
+		t.Fatalf("unable to seek file: %s", err)
+	}
+	for p.Prompt() {
+
+	}
+	// no tests, just insuring garbage input won't crash
 }
