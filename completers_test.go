@@ -48,14 +48,14 @@ func TestCompleteFileOrDir(t *testing.T) {
 	}
 	baseDirLen := len(dir)
 	for _, tc := range tests {
-		res := prompt.CompleteFileOrDirectory(tc.inp)
-		for i := range res {
-			res[i] = res[i][baseDirLen:]
+		got := prompt.CompleteFileOrDirectory(tc.inp)
+		for i := range got {
+			got[i] = got[i][baseDirLen:]
 		}
 		// get a consistent output
-		sort.Strings(res)
-		if len(res) != len(tc.exp) {
-			t.Fatalf("expected %v = %v", res, tc.exp)
+		sort.Strings(got)
+		if len(got) != len(tc.exp) {
+			t.Fatalf("expected %v, got %v, completing '%s'", tc.exp, got, tc.inp)
 		}
 	}
 
@@ -82,14 +82,14 @@ func TestCompleteDir(t *testing.T) {
 	}
 	baseDirLen := len(dir)
 	for _, tc := range tests {
-		res := prompt.CompleteDirectory(tc.inp)
-		for i := range res {
-			res[i] = res[i][baseDirLen:]
+		got := prompt.CompleteDirectory(tc.inp)
+		for i := range got {
+			got[i] = got[i][baseDirLen:]
 		}
 		// get a consistent output
-		sort.Strings(res)
-		if len(res) != len(tc.exp) {
-			t.Fatalf("expected %v = %v", res, tc.exp)
+		sort.Strings(got)
+		if len(got) != len(tc.exp) {
+			t.Fatalf("expected %v got %v, using '%s'", tc.exp, got, tc.inp)
 		}
 	}
 

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	p := prompt.NewPrompt()
-	p.RegisterCompleter("fileOrDir", prompt.CompleteFileOrDir)
+	p.RegisterCompleter("fileOrDir", prompt.CompleteFileOrDirectory)
 	p.RegisterCompleter("name", func(name string) (matches []string) {
 		for _, v := range []string{"Todd", "Elizabeth", "Ellen", "Eleanore"} {
 			if strings.HasPrefix(v, name) {

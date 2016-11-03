@@ -34,17 +34,27 @@ var CompleteFile = completeFileDir(filesOnly)
 
 func completeFileDir(mode completeMode) func(fileOrDir string) []string {
 	return func(fileOrDir string) []string {
+
 		// if the user supplied no input, pre-populate with the cwd
 		if fileOrDir == "" {
 			fileOrDir = "./"
+		} else {
+			fileOrDir = path.Clean(fileOrDir)
 		}
 
-		base := path.Clean(fileOrDir)
-		dir, file := path.Split(base)
-		// path specifies a directory, so complete inside of it
+		var dir, file string
+		// the user input is a directory, so complete inside of it
 		if fs, err := os.Stat(fileOrDir); err == nil && fs.IsDir() {
 			dir = fileOrDir
 			file = ""
+		} else {
+			// otherwise split it into directory and file components, and
+			// complete inside the directory matching against the filename portion
+			dir, file = path.Split(fileOrDir)
+			if dir == "" {
+				// if the user supplied no input, pre-populate with the cwd
+				dir = "./"
+			}
 		}
 
 		matchFiles, err := ioutil.ReadDir(dir)
