@@ -30,7 +30,7 @@ func NewPrompt() *Prompt {
 	line.SetTabCompletionStyle(liner.TabPrints)
 	p := &Prompt{
 		Prompter: func() string {
-			return ">"
+			return "> "
 		},
 		LineState:   line,
 		completers:  map[string]Completer{},
