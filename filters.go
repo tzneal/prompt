@@ -23,14 +23,34 @@ func Grep(r io.Reader, w io.Writer, args []string) {
 		io.Copy(w, r)
 		return
 	}
+	caseSensitive := true
+	invertMatch := false
+	regex := ""
+	for _, arg := range args {
+		switch arg {
+		case "-i":
+			caseSensitive = false
+		case "-v":
+			invertMatch = true
+		default:
+			regex = arg
+		}
+	}
 
-	re, err := regexp.Compile(args[0])
+	if !caseSensitive {
+		regex = fmt.Sprintf("(?i)%s", regex)
+	}
+
+	re, err := regexp.Compile(regex)
 	if err != nil {
 		fmt.Fprintf(w, "error compiling regexp: %s", err)
+		return
 	}
+
 	for sc.Scan() {
 		line := sc.Text()
-		if !re.MatchString(line) {
+		matchesRe := re.MatchString(line)
+		if (!invertMatch && !matchesRe) || (invertMatch && matchesRe) {
 			continue
 		}
 		w.Write([]byte(line))
