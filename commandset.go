@@ -21,7 +21,7 @@ func newCommandSet(name string) *CommandSet {
 	}
 }
 
-// RegisterCommand registers a command. The description syntax is:
+// RegisterCommandFunc registers a command. The description syntax is:
 //
 // cmd [arg1 arg2...] [$n:[completionType] ...] [$*:[completionType]]
 //
@@ -30,7 +30,7 @@ func newCommandSet(name string) *CommandSet {
 // have []args{"b","a"}) when the command is executed.)
 //
 // $* - wildcard, matches all arguments to the end of the line
-func (cs *CommandSet) RegisterCommand(desc string, fn Command) error {
+func (cs *CommandSet) RegisterCommandFunc(desc string, fn Command) error {
 	cmd, err := parseCommand(desc, fn)
 	if err != nil {
 		return err

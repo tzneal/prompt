@@ -59,9 +59,9 @@ func TestPromptCompleter(t *testing.T) {
 	defer p.Close()
 
 	cs := p.NewCommandSet("foo")
-	cs.RegisterCommand("test", func(io.Writer, []string) {})
-	cs.RegisterCommand("testing", func(io.Writer, []string) {})
-	cs.RegisterCommand("traffic", func(io.Writer, []string) {})
+	cs.RegisterCommandFunc("test", func(io.Writer, []string) {})
+	cs.RegisterCommandFunc("testing", func(io.Writer, []string) {})
+	cs.RegisterCommandFunc("traffic", func(io.Writer, []string) {})
 
 	tests := []struct {
 		input string
@@ -131,7 +131,7 @@ func TestPromptSingleCommandNoArgs(t *testing.T) {
 
 	cmdExecuted := false
 	cs := p.NewCommandSet("foo")
-	cs.RegisterCommand("test", func(io.Writer, []string) {
+	cs.RegisterCommandFunc("test", func(io.Writer, []string) {
 		cmdExecuted = true
 	})
 
@@ -158,7 +158,7 @@ func TestPromptSingleCommandSingleArg(t *testing.T) {
 
 	cmdArg := ""
 	cs := p.NewCommandSet("foo")
-	cs.RegisterCommand("test $1", func(w io.Writer, args []string) {
+	cs.RegisterCommandFunc("test $1", func(w io.Writer, args []string) {
 		cmdArg = args[0]
 	})
 
@@ -183,7 +183,7 @@ func TestPromptSingleCommandWildcard(t *testing.T) {
 
 	cmdArgs := []string{}
 	cs := p.NewCommandSet("foo")
-	cs.RegisterCommand("test $*", func(w io.Writer, args []string) {
+	cs.RegisterCommandFunc("test $*", func(w io.Writer, args []string) {
 		cmdArgs = args
 	})
 
@@ -225,7 +225,7 @@ func TestPromptFuzz(t *testing.T) {
 	defer cleanup()
 
 	cs := p.NewCommandSet("foo")
-	cs.RegisterCommand("test", func(w io.Writer, args []string) {
+	cs.RegisterCommandFunc("test", func(w io.Writer, args []string) {
 	})
 
 	r := rand.NewSource(42)
