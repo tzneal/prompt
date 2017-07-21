@@ -24,16 +24,16 @@ func main() {
 	p.RegisterFilter("grep", prompt.Grep)
 
 	cs := p.NewCommandSet("default")
-	cs.RegisterCommand("exit", func(w io.Writer, args []string) {
+	cs.RegisterCommandFunc("exit", func(w io.Writer, args []string) {
 		fmt.Fprintf(w, "exiting...\n")
 		p.Close()
 		os.Exit(0)
 	})
-	cs.RegisterCommand("names", prompt.PushCommandSet(p, "names-set"))
-	cs.RegisterCommand("list-files", prompt.PushCommandSet(p, "list-files-set"))
+	cs.RegisterCommandFunc("names", prompt.PushCommandSet(p, "names-set"))
+	cs.RegisterCommandFunc("list-files", prompt.PushCommandSet(p, "list-files-set"))
 	names := p.NewCommandSet("names-set")
-	names.RegisterCommand("exit", prompt.PopCommandSet(p))
-	names.RegisterCommand("hello $*:name", func(w io.Writer, names []string) {
+	names.RegisterCommandFunc("exit", prompt.PopCommandSet(p))
+	names.RegisterCommandFunc("hello $*:name", func(w io.Writer, names []string) {
 		w.Write([]byte("Hello "))
 		for i, name := range names {
 			if i > 0 {
@@ -49,8 +49,8 @@ func main() {
 	})
 
 	lf := p.NewCommandSet("list-files-set")
-	lf.RegisterCommand("exit", prompt.PopCommandSet(p))
-	lf.RegisterCommand("ls $1:fileOrDir", func(w io.Writer, args []string) {
+	lf.RegisterCommandFunc("exit", prompt.PopCommandSet(p))
+	lf.RegisterCommandFunc("ls $1:fileOrDir", func(w io.Writer, args []string) {
 		inp := args[0]
 		if fi, err := os.Stat(inp); err != nil {
 			fmt.Fprintf(w, "error listing %s: %s\n", inp, err)
